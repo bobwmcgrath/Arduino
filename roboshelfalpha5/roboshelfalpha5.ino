@@ -240,15 +240,14 @@ void goUp(int spd, int x)
 {
  GO_DOWN_FLAG=0;
  sense();
- if (BUTTON_STOP_STATE == 0){   
+ //if (BUTTON_STOP_STATE == 0){   
  analogWrite(ENA, spd);// motor speed  
  digitalWrite(IN1,LOW);// rotate forward
  digitalWrite(IN2,HIGH);
  //Serial.println("up");
  delay(x);
- analogWrite(ENA, 0);
   
- }
+ //}
 } 
 
 void goDown(int spd, int x)
@@ -258,8 +257,8 @@ void goDown(int spd, int x)
  digitalWrite(IN1,HIGH);// rotate reverse
  digitalWrite(IN2,LOW);
  delay(x);
- analogWrite(ENA, 0);
  //Serial.println("down");
+ Serial.println(spd);
   
 
 } 
@@ -304,7 +303,7 @@ void sense(){
   BUTTON_STOP_STATE=digitalRead(BUTTON_STOP);
   AMPS_STATE=analogRead(A0);
   //Serial.print("AMPS_STATE");
-  Serial.println(RELAY_BREAK);
+  Serial.println();
   
 }
 
@@ -343,6 +342,8 @@ void fan(){
 }
 
 void loop(){
+  Serial.println("x");
+ //analogWrite(ENA, 0);
  sense();
  if (BUTTON_STOP_STATE==1) encoder0Pos=0;
  if (BUTTONS==0b00000100)light();
@@ -352,21 +353,23 @@ void loop(){
   goTo();
   digitalWrite(RELAY_BREAK,HIGH);
  }
- if (BUTTONS==0b00100000){//go up
-  digitalWrite(RELAY_BREAK,LOW);
-  while (BUTTON_STOP_STATE==0&&BUTTONS==0b00100000){goUp(320,10);sense();}
-  digitalWrite(RELAY_BREAK,HIGH);
- }
  if (BUTTONS==0b00000001 && BUTTON_STOP_STATE==0){
   digitalWrite(RELAY_BREAK,LOW);
   goHome();
   digitalWrite(RELAY_BREAK,HIGH);
  }
- if (BUTTONS==0b00010000){//go down
+ if (BUTTONS==0b00100000){//go up
   digitalWrite(RELAY_BREAK,LOW);
-  while (BUTTONS==0b00010000){goDown(320,10);sense();}
+  while (BUTTONS==0b00100000){goUp(300,100);sense();}
   digitalWrite(RELAY_BREAK,HIGH);
  }
+ if (BUTTONS==0b00010000){//go down
+  digitalWrite(RELAY_BREAK,LOW);
+  while (BUTTONS==0b00010000){goDown(300,100);sense();}
+  digitalWrite(RELAY_BREAK,HIGH);
+ }
+
+
  if (BUTTONS==0b00001000 && BUTTON_STOP_STATE==1){
   digitalWrite(RELAY_BREAK,LOW);
   encoder0Pos=0;
