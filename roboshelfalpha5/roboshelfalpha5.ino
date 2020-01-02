@@ -59,6 +59,7 @@ int RELAY_FAN_FLAG=1;
 int RELAY_LIGHT_FLAG=0;
 int GO_DOWN_FLAG=0;
 int teach_encoder0Pos=0;
+int dly=200;
 //
 
 OneWire oneWire(DS2408_ONEWIRE_PIN);
@@ -239,11 +240,11 @@ void doEncoder() {
 void goUp(int spd, int x)
 {
  GO_DOWN_FLAG=0;
- sense();
+ //sense();
  //if (BUTTON_STOP_STATE == 0){   
- analogWrite(ENA, spd);// motor speed  
  digitalWrite(IN1,LOW);// rotate forward
  digitalWrite(IN2,HIGH);
+ analogWrite25k(ENA, spd);// motor speed  
  //Serial.println("up");
  delay(x);
   
@@ -252,13 +253,13 @@ void goUp(int spd, int x)
 
 void goDown(int spd, int x)
 { 
- GO_DOWN_FLAG=1;
- analogWrite(ENA, spd);// motor speed    
+ GO_DOWN_FLAG=1;  
  digitalWrite(IN1,HIGH);// rotate reverse
  digitalWrite(IN2,LOW);
+ analogWrite25k(ENA, spd);// motor speed  
  delay(x);
  //Serial.println("down");
- Serial.println(spd);
+ //Serial.println(spd);
   
 
 } 
@@ -266,15 +267,15 @@ void goDown(int spd, int x)
 void goTo(){
 
 while (teach_encoder0Pos>encoder0Pos)  
-{goDown(320,10);
+{goDown(300,10);
 sense();}
   
 }
 
 void goHome(){
-  while (BUTTON_STOP_STATE==0){
+  while (BUTTON_STOP_STATE==1){
   sense;
-  goUp(320,10);
+  goUp(300,10);
   //Serial.println("home");
   }
 }
@@ -303,7 +304,7 @@ void sense(){
   BUTTON_STOP_STATE=digitalRead(BUTTON_STOP);
   AMPS_STATE=analogRead(A0);
   //Serial.print("AMPS_STATE");
-  Serial.println();
+  Serial.println(encoder0Pos);
   
 }
 
@@ -343,35 +344,40 @@ void fan(){
 
 void loop(){
   Serial.println("x");
- //analogWrite(ENA, 0);
+ analogWrite25k(ENA, 0);
  sense();
- if (BUTTON_STOP_STATE==1) encoder0Pos=0;
+ if (BUTTON_STOP_STATE==0) encoder0Pos=20;
  if (BUTTONS==0b00000100)light();
  if (BUTTONS==0b00000010)fan();
- if (BUTTONS==0b00000001 && BUTTON_STOP_STATE==1){
+ if (BUTTONS==0b00000001 && BUTTON_STOP_STATE==0){//go to set position
   digitalWrite(RELAY_BREAK,LOW);
+  delay(dly);
   goTo();
   digitalWrite(RELAY_BREAK,HIGH);
  }
- if (BUTTONS==0b00000001 && BUTTON_STOP_STATE==0){
+ if (BUTTONS==0b00000001 && BUTTON_STOP_STATE==1){//go home
   digitalWrite(RELAY_BREAK,LOW);
+  delay(dly);
   goHome();
   digitalWrite(RELAY_BREAK,HIGH);
  }
- if (BUTTONS==0b00100000){//go up
+ if (BUTTONS==0b00100000 && BUTTON_STOP_STATE==1){//go up
   digitalWrite(RELAY_BREAK,LOW);
-  while (BUTTONS==0b00100000){goUp(300,100);sense();}
+  delay(dly);
+  while (BUTTONS==0b00100000 && BUTTON_STOP_STATE==1){goUp(300,100);sense();}
   digitalWrite(RELAY_BREAK,HIGH);
  }
  if (BUTTONS==0b00010000){//go down
   digitalWrite(RELAY_BREAK,LOW);
+  delay(dly);
   while (BUTTONS==0b00010000){goDown(300,100);sense();}
   digitalWrite(RELAY_BREAK,HIGH);
  }
 
 
- if (BUTTONS==0b00001000 && BUTTON_STOP_STATE==1){
+ if (BUTTONS==0b00001000 && BUTTON_STOP_STATE==0){//teach
   digitalWrite(RELAY_BREAK,LOW);
+  delay(dly);
   encoder0Pos=0;
   teach();
   digitalWrite(RELAY_BREAK,HIGH);
