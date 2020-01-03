@@ -65,6 +65,6 @@ void loop() {
   goUp(200,5000);
   delay(1000);
   goDown(200,5000);
-  delay(1000);
+  delay(1000); 
 
 }

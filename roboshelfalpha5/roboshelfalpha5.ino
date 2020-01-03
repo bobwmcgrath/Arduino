@@ -16,8 +16,8 @@
 int ENA=9;
 int IN1=7;
 int IN2=6;
-int encoder0PinA = 2;
-int encoder0PinB = 3;
+int encoder0PinA = 3;
+int encoder0PinB = 2;
 
 volatile unsigned int encoder0Pos = 0;
 
@@ -60,6 +60,7 @@ int RELAY_LIGHT_FLAG=0;
 int GO_DOWN_FLAG=0;
 int teach_encoder0Pos=0;
 int dly=200;
+int buttonsFlag=0;
 //
 
 OneWire oneWire(DS2408_ONEWIRE_PIN);
@@ -205,6 +206,7 @@ void setup()
  sense();
 
 Serial.println("setup");
+encoder0Pos=0;
 }
 
 
@@ -221,12 +223,6 @@ void analogWrite25k(int pin, int value)
 }
 
 void doEncoder() {
-  /* If pinA and pinB are both high or both low, it is spinning
-     forward. If they're different, it's going backward.
-
-     For more information on speeding up this process, see
-     [Reference/PortManipulation], specifically the PIND register.
-  */
   if (GO_DOWN_FLAG==1) {
     encoder0Pos++;
   } else {
@@ -266,15 +262,32 @@ void goDown(int spd, int x)
 
 void goTo(){
 
-while (teach_encoder0Pos>encoder0Pos)  
-{goDown(300,10);
+while (teach_encoder0Pos>encoder0Pos){
+if (BUTTONS==0b00000000) buttonsFlag=1;
+if (BUTTONS==0b00000001&&buttonsFlag==1){
+  while (BUTTONS==0b00000001){
+    delay(10);
+    sense();
+    }
+  return 0; 
+}
+goDown(300,10);
 sense();}
   
 }
 
 void goHome(){
   while (BUTTON_STOP_STATE==1){
-  sense;
+  if (BUTTONS==0b00000000) buttonsFlag=1;
+  if (BUTTONS==0b00000001&&buttonsFlag==1){
+    analogWrite25k(ENA, 0);
+    while (BUTTONS==0b00000001){
+      delay(10);
+      sense();
+    }
+    return 0;
+  }
+  sense();
   goUp(300,10);
   //Serial.println("home");
   }
@@ -303,8 +316,9 @@ void sense(){
   delay(10);
   BUTTON_STOP_STATE=digitalRead(BUTTON_STOP);
   AMPS_STATE=analogRead(A0);
-  //Serial.print("AMPS_STATE");
+  Serial.print(BUTTON_STOP_STATE);
   Serial.println(encoder0Pos);
+  Serial.println(teach_encoder0Pos);
   
 }
 
@@ -345,29 +359,30 @@ void fan(){
 void loop(){
   Serial.println("x");
  analogWrite25k(ENA, 0);
+ buttonsFlag=0;
  sense();
  if (BUTTON_STOP_STATE==0) encoder0Pos=20;
  if (BUTTONS==0b00000100)light();
  if (BUTTONS==0b00000010)fan();
- if (BUTTONS==0b00000001 && BUTTON_STOP_STATE==0){//go to set position
+ if (BUTTONS==0b00000001 && BUTTON_STOP_STATE==0){Serial.println("go to set position");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
   goTo();
   digitalWrite(RELAY_BREAK,HIGH);
  }
- if (BUTTONS==0b00000001 && BUTTON_STOP_STATE==1){//go home
+ if (BUTTONS==0b00000001 && BUTTON_STOP_STATE==1){Serial.println("go home");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
   goHome();
   digitalWrite(RELAY_BREAK,HIGH);
  }
- if (BUTTONS==0b00100000 && BUTTON_STOP_STATE==1){//go up
+ if (BUTTONS==0b00100000 && BUTTON_STOP_STATE==1){Serial.println("go up");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
   while (BUTTONS==0b00100000 && BUTTON_STOP_STATE==1){goUp(300,100);sense();}
   digitalWrite(RELAY_BREAK,HIGH);
  }
- if (BUTTONS==0b00010000){//go down
+ if (BUTTONS==0b00010000){Serial.println("go down");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
   while (BUTTONS==0b00010000){goDown(300,100);sense();}
@@ -375,7 +390,7 @@ void loop(){
  }
 
 
- if (BUTTONS==0b00001000 && BUTTON_STOP_STATE==0){//teach
+ if (BUTTONS==0b00001000 && BUTTON_STOP_STATE==0){Serial.println("teach");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
   encoder0Pos=0;

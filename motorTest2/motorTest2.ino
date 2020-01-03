@@ -30,7 +30,7 @@ void setup() {
  //digitalWrite(encoder0PinA, HIGH);       // turn on pull-up resistor
  pinMode(encoder0PinB, INPUT_PULLUP);
  //digitalWrite(encoder0PinB, HIGH);       // turn on pull-up resistor
- attachInterrupt(0, doEncoder, CHANGE);  // encoder pin on interrupt 0 - pin 2
+ attachInterrupt(digitalPinToInterrupt(3), doEncoder, CHANGE);  // encoder pin on interrupt 0 - pin 2
 
  
  pinMode(ENA,OUTPUT);
@@ -77,50 +77,61 @@ void doEncoder() {
 
 
 
-void goUp(int spd, int x)
+void goUp(int spd, int x, int start)
 {
     GO_UP_FLAG=1;
- analogWrite25k( ENA, spd);// motor speed  
+ 
  digitalWrite(IN1,LOW);// rotate forward
  digitalWrite(IN2,HIGH);
+ delay(10);
+ analogWrite( ENA, 0);// motor speed  
  //Serial.println("up");
   before =millis();
  now=millis();
  while (now - before < x){
+  delay(10);
+  if (spd>start)start++;
+  analogWrite( ENA, start);
   now=millis();
   amps=analogRead(A0);
-  Serial.println(amps);
-  //Serial.println (encoder0Pos, DEC);
+  //Serial.println(amps);
+  int y=digitalRead(2);
+  Serial.println (y);
  }
- analogWrite25k(ENA, 0);
+ analogWrite(ENA, 0);
   GO_UP_FLAG=0;
  }
  
-void goDown(int spd, int x)
+void goDown(int spd, int x, int start)
 {
- GO_DOWN_FLAG=1;
- analogWrite25k(ENA, spd);// motor speed  
+ GO_DOWN_FLAG=1; 
  digitalWrite(IN1,HIGH);// rotate forward
  digitalWrite(IN2,LOW);
+ delay(10);
+ analogWrite( ENA, start);// motor speed  
  //Serial.println("down");
  before =millis();
  now=millis();
  while (now - before < x){
+  delay(10);
+  if (spd>start)start++;
+  analogWrite( ENA, start);
   now=millis();
   amps=analogRead(A0);
-  Serial.println(amps);
+  int y=digitalRead(2);
+  Serial.println(y);
   //Serial.println (encoder0Pos, DEC);
  }
- analogWrite25k(ENA, 0);
+ analogWrite(ENA, 0);
   GO_DOWN_FLAG=0;
  }
 
 
 void loop() {
   encoder0Pos=0;
-  goDown(200,3000);
-  delay(1000);
-  goUp(320,3000);
-  delay(1000);
+  goDown(100,3000,0);
+  //delay(1000);
+  goUp(100,3000,0);
+  //delay(1000);
 
 }
