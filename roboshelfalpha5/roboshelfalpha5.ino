@@ -1,6 +1,9 @@
 /* roboshelf by Bob*/
 #include <EEPROM.h>
 #include <OneWire.h>
+#include <HCSR04.h>
+
+UltraSonicDistanceSensor distanceSensor(A4, A5);  // Initialize sensor that uses digital pins 13 and 12.
 
 //OWB stuff
 #define DS2408_ONEWIRE_PIN  (8)
@@ -325,10 +328,10 @@ void sense(){
   BUTTON_STOP_STATE=digitalRead(BUTTON_STOP);
   LAST_AMPS_STATE=AMPS_STATE;
   AMPS_STATE=analogRead(A0);
-  Serial.println(AMPS_STATE);Serial.print(" ");
+  Serial.println(BUTTONS,BIN);Serial.print(" ");
   //Serial.println(encoder0Pos);Serial.print(" ");
   //Serial.println(teach_encoder0Pos);Serial.print(" ");
-  
+  Serial.println(distanceSensor.measureDistanceCm());
 }
 
 int light(){
@@ -366,6 +369,8 @@ void fan(){
 }
 
 void loop(){
+ //delay(dly);
+ //Serial.println(distanceSensor.measureDistanceCm());
  acc=0;
  //Serial.println("x");
  analogWrite25k(ENA, 0);
