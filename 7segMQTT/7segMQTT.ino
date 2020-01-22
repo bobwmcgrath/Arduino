@@ -1,24 +1,88 @@
-// 7segMQTT by Bob McGrath
-// code for controling 7 segment displays via MQTT commands for a wack-a-mole game 
+/*
+ Based on "Basic MQTT example" 
+*/
+
 
 #include <SPI.h>
 #include <Ethernet.h>
+#include <PubSubClient.h>
+
+
+const bool countdown=1;
+const bool score=0;
+const bool high_score=0;
 
 //GPIO declarations
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 byte segmentClock = 6;
 byte segmentLatch = 5;
 byte segmentData = 7;
-
+int number = 31;
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+// Update these with values suitable for your network.
+//if (countdown==1) 
+byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x01 };
+//if (score==1) byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x02 };
+//if (high_score==1) byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x03 };
+
+//if (countdown==1) 
+IPAddress ip(192, 168, 1, 80);
+//if (score==1) IPAddress ip(192, 168, 1, 80);
+//if (high_score==1) IPAddress ip(192, 168, 1, 80);
+
+IPAddress server(192, 168, 1, 239);
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  if ((String)topic == "start" && countdown==1)count_down();
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
+  for (int i=0;i<length;i++) {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
+
+}
+
+EthernetClient ethClient;
+PubSubClient client(ethClient);
+
+void reconnect() {
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (client.connect("arduinoClient")) {
+      Serial.println("connected");
+      // Once connected, publish an announcement...
+      client.publish("outTopic","hello world");
+      // ... and resubscribe
+      client.subscribe("start");
+      client.subscribe("score");
+      client.subscribe("stop");
+      
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
 
 void setup()
 {
-  Ethernet.init(33);  // ESP32 with Adafruit Featherwing Ethernet
-  
-  Serial.begin(9600);
-  Serial.println("Large Digit Driver Example");
+  Serial.begin(115200);
 
+  client.setServer(server, 1883);
+  client.setCallback(callback);
+
+  Ethernet.begin(mac, ip);
+  // Allow the hardware to sort itself out
+  delay(1500);
+  
   pinMode(segmentClock, OUTPUT);
   pinMode(segmentData, OUTPUT);
   pinMode(segmentLatch, OUTPUT);
@@ -26,22 +90,38 @@ void setup()
   digitalWrite(segmentClock, LOW);
   digitalWrite(segmentData, LOW);
   digitalWrite(segmentLatch, LOW);
+
 }
 
-int number = 0;
+void count_down()
+{
+  showNumber(number-1); //Test pattern
+
+  while (number!=0)
+  {
+    delay(200);
+    showNumber(number-1);
+    number--;
+    
+  Serial.println(number); //For debugging
+  }
+  number = 31; //Reset x after 99
+}
+
 
 void loop()
 {
-  showNumber(number); //Test pattern
-  number++;
-  number %= 100; //Reset x after 99
-  
-  Serial.println(number); //For debugging
-  
-  delay(500);
+  if (!client.connected()) {
+    reconnect();
+  }
+  client.loop();
+
+
+
 }
 
-//Takes a number and displays 2 numbers. Displays absolute value (no negatives)
+
+
 void showNumber(float value)
 {
   int number = abs(value); //Remove negative signs and any decimals
@@ -62,6 +142,7 @@ void showNumber(float value)
   digitalWrite(segmentLatch, LOW);
   digitalWrite(segmentLatch, HIGH); //Register moves storage register on the rising edge of RCK
 }
+
 
 //Given a number, or '-', shifts it out to the display
 void postNumber(byte number, boolean decimal)
