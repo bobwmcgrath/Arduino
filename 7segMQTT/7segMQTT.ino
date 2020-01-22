@@ -8,16 +8,17 @@
 #include <PubSubClient.h>
 
 
-const bool countdown=1;
-const bool score=0;
+const bool countdown=0;
+const bool score=1;
 const bool high_score=0;
+int top_score=0;
 
 //GPIO declarations
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 byte segmentClock = 6;
 byte segmentLatch = 5;
 byte segmentData = 7;
-int number = 31;
+int number = 0;
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 // Update these with values suitable for your network.
@@ -35,6 +36,17 @@ IPAddress server(192, 168, 1, 239);
 
 void callback(char* topic, byte* payload, unsigned int length) {
   if ((String)topic == "start" && countdown==1)count_down();
+  if ((String)topic == "score" && score==1)score_point();
+  if ((String)topic == "stop" && score==1){
+    number=0;
+    showNumber(number);
+  }
+  if ((String)topic == "score" && high_score==1)number++;
+  if ((String)topic == "stop" && high_score==1){
+    if (number>top_score)top_score=number;
+    number=0;
+    showNumber(top_score);
+  }
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
@@ -91,10 +103,13 @@ void setup()
   digitalWrite(segmentData, LOW);
   digitalWrite(segmentLatch, LOW);
 
+  showNumber(number);
+
 }
 
 void count_down()
 {
+  number = 31;
   showNumber(number-1); //Test pattern
 
   while (number!=0)
@@ -105,9 +120,15 @@ void count_down()
     
   Serial.println(number); //For debugging
   }
-  number = 31; //Reset x after 99
+   //Reset x after 99
 }
 
+void score_point()
+{
+  number++;
+  showNumber(number);
+  delay(150);
+}
 
 void loop()
 {
