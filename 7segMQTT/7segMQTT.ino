@@ -37,7 +37,7 @@ IPAddress server(192, 168, 1, 239);
 void callback(char* topic, byte* payload, unsigned int length) {
   if ((String)topic == "start" && countdown==1)count_down();
   if ((String)topic == "score" && score==1)score_point();
-  if ((String)topic == "stop" && score==1){
+  if ((String)topic == "start" && score==1){
     number=0;
     showNumber(number);
   }
@@ -114,7 +114,7 @@ void count_down()
 
   while (number!=0)
   {
-    delay(200);
+    delay(1000);
     showNumber(number-1);
     number--;
     
