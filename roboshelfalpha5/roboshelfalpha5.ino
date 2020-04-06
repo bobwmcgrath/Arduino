@@ -7,7 +7,6 @@
 
 //OWB stuff
 #define DS2408_ONEWIRE_PIN  (8)
-
 #define DS2408_FAMILY_ID    0x29
 #define DS2408_ACCESS_READ  0xF5
 #define DS2408_ACCESS_WRITE 0x5A
@@ -19,8 +18,8 @@
 int ENA=9;
 int IN1=7;
 int IN2=6;
-int encoder0PinA = 3;
-int encoder0PinB = 2;
+int encoder0PinA = 2;
+int ULTRASONIC_INTERUPT = 3;
 
 volatile unsigned int encoder0Pos = 0;
 
@@ -131,8 +130,6 @@ void setup()
 {
 
  //OWB stuff
- 
-  
   Serial.begin(115200);  
   
   Serial.println(F("Looking for a DS2408 on the bus"));
@@ -166,14 +163,13 @@ void setup()
   Serial.print(F("Found a DS2408: "));
   printBytes(address, 8);
   Serial.println(F(""));
-  //end of OWB stuff
-  
+//end of OWB stuff
+
+
+//read eeprom for set distance
  EEPROM.get(0,teach_encoder0Pos);
- pinMode(ENA,OUTPUT);
- pinMode(IN1,OUTPUT);
- pinMode(IN2,OUTPUT); 
   
-    // Configure Timer 1 for PWM @ 25 kHz.
+// Configure Timer 1 for PWM @ 25 kHz.
     TCCR1A = 0;           // undo the configuration done by...
     TCCR1B = 0;           // ...the Arduino core library
     TCNT1  = 0;           // reset timer
@@ -183,16 +179,18 @@ void setup()
     TCCR1B = _BV(WGM13)   // ditto
            | _BV(CS10);   // prescaler = 1
     ICR1   = 320;         // TOP = 320
-    
- pinMode(encoder0PinA, INPUT_PULLUP);
- //digitalWrite(encoder0PinA, HIGH);       // turn on pull-up resistor
- pinMode(encoder0PinB, INPUT_PULLUP);
- //digitalWrite(encoder0PinB, HIGH);       // turn on pull-up resistor
- attachInterrupt(0, doEncoder, CHANGE);  // encoder pin on interrupt 0 - pin 2
 
+//PIN INITILIZATION
+ pinMode(ENA,OUTPUT);
+ pinMode(IN1,OUTPUT);
+ pinMode(IN2,OUTPUT); 
+ pinMode(encoder0PinA, INPUT_PULLUP);       // turn on pull-up resistor
+ pinMode(US_INTERUPT, INPUT_PULLUP);       // turn on pull-up resistor
+ attachInterrupt(0, doEncoder, CHANGE);  // encoder pin on interrupt 0 - pin 2
+ attachInterrupt(1, USlisten, CHANGE);  // encoder pin on interrupt 1 - pin 3
  pinMode(BUTTON_STOP,INPUT_PULLUP);
  pinMode(AMPS,INPUT);
-
+ pinMode(A5,OUTPUT);
  pinMode (RELAY_FAN_LOW,OUTPUT);
  pinMode (RELAY_FAN_HIGH,OUTPUT);
  pinMode (RELAY_LIGHT,OUTPUT);
@@ -210,10 +208,10 @@ void setup()
  sense();
 
 Serial.println("setup");
-encoder0Pos=0;
+//encoder0Pos=0;
 }
 
-
+//AN ANALOG WRITE THAT PWMS AT FASTER THAN THE NORMAL 490HZ
 void analogWrite25k(int pin, int value)
 {
     switch (pin) {
@@ -237,6 +235,23 @@ void doEncoder() {
   //Serial.println (encoder0Pos, DEC);
 }
 
+void US_listen(){
+  US_STATE=digitalRead(US_interupt);
+  if (US_STATE==1){
+    US_START=micros();
+  }
+  if (US_STATE==0){
+    LAST_US_DISTANCE=US_DISTANCE
+    US_END=micros();
+    US_END-US_START=US_DISTANCE;
+  }  
+}
+
+void US_send(){
+  digitalWrite(US_trigger, HIGH);
+  delayMicroseconds(20);
+  digitalWrite(US_trigger, LOW); 
+}
 
 void goUp(int spd, int x)
 {
@@ -254,15 +269,15 @@ void goUp(int spd, int x)
 
 void goDown(int spd, int x)
 { 
+ US_send();
  GO_DOWN_FLAG=1;  
  digitalWrite(IN1,HIGH);// rotate reverse
  digitalWrite(IN2,LOW);
  analogWrite25k(ENA, spd);// motor speed  
  delay(x);
+ if US_DISTANCE-LAST_US_DISTANCE>
  //Serial.println("down");
  //Serial.println(spd);
-  
-
 } 
 
 void goTo(){
@@ -302,9 +317,7 @@ void goHome(){
   }
 }
 
-void teach(){
- 
- 
+void teach(){ 
  delay(10);
  while (BUTTONS==0b00110000){
     goDown(acc,100);

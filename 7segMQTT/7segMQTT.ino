@@ -9,8 +9,8 @@
 
 
 const bool countdown=0;
-const bool score=1;
-const bool high_score=0;
+const bool score=0;
+const bool high_score=1;
 int top_score=0;
 
 //GPIO declarations
@@ -23,9 +23,11 @@ int number = 0;
 
 // Update these with values suitable for your network.
 //if (countdown==1) 
-byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x01 };
-//if (score==1) byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x02 };
-//if (high_score==1) byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x03 };
+//byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x01 };
+//if (score==1) 
+//byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x02 };
+//if (high_score==1) 
+byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x03 };
 
 //if (countdown==1) 
 IPAddress ip(192, 168, 1, 80);
