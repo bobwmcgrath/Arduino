@@ -1,7 +1,7 @@
 /* roboshelf by Bob*/
 #include <EEPROM.h>
 #include <OneWire.h>
-#include <HCSR04.h>
+//#include <HCSR04.h>
 
 UltraSonicDistanceSensor distanceSensor(A4, A5);  // Initialize sensor that uses digital pins 13 and 12.
 
