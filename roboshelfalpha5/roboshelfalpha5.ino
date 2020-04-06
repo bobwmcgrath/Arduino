@@ -3,7 +3,7 @@
 #include <OneWire.h>
 //#include <HCSR04.h>
 
-UltraSonicDistanceSensor distanceSensor(A4, A5);  // Initialize sensor that uses digital pins 13 and 12.
+//UltraSonicDistanceSensor distanceSensor(A4, A5);  // Initialize sensor that uses digital pins 13 and 12.
 
 //OWB stuff
 #define DS2408_ONEWIRE_PIN  (8)
@@ -184,9 +184,9 @@ void setup()
  pinMode(IN1,OUTPUT);
  pinMode(IN2,OUTPUT); 
  pinMode(encoder0PinA, INPUT_PULLUP);       // turn on pull-up resistor
- pinMode(US_INTERUPT, INPUT_PULLUP);       // turn on pull-up resistor
+ //pinMode(US_INTERUPT, INPUT_PULLUP);       // turn on pull-up resistor
  attachInterrupt(0, doEncoder, CHANGE);  // encoder pin on interrupt 0 - pin 2
- attachInterrupt(1, USlisten, CHANGE);  // encoder pin on interrupt 1 - pin 3
+ //attachInterrupt(1, USlisten, CHANGE);  // encoder pin on interrupt 1 - pin 3
  pinMode(BUTTON_STOP,INPUT_PULLUP);
  pinMode(AMPS,INPUT);
  pinMode(A5,OUTPUT);
@@ -233,23 +233,7 @@ void doEncoder() {
   //Serial.println (encoder0Pos, DEC);
 }
 
-void US_listen(){
-  US_STATE=digitalRead(US_interupt);
-  if (US_STATE==1){
-    US_START=micros();
-  }
-  if (US_STATE==0){
-    LAST_US_DISTANCE=US_DISTANCE
-    US_END=micros();
-    US_END-US_START=US_DISTANCE;
-  }  
-}
 
-void US_send(){
-  digitalWrite(US_trigger, HIGH);
-  delayMicroseconds(20);
-  digitalWrite(US_trigger, LOW); 
-}
 
 void goUp(int spd, int x)
 {
@@ -267,13 +251,12 @@ void goUp(int spd, int x)
 
 void goDown(int spd, int x)
 { 
- US_send();
  GO_DOWN_FLAG=1;  
  digitalWrite(IN1,HIGH);// rotate reverse
  digitalWrite(IN2,LOW);
  analogWrite25k(ENA, spd);// motor speed  
  delay(x);
- if US_DISTANCE-LAST_US_DISTANCE>
+// if US_DISTANCE-LAST_US_DISTANCE>
  //Serial.println("down");
  //Serial.println(spd);
 } 
@@ -281,43 +264,48 @@ void goDown(int spd, int x)
 void goTo(){
 
 while (teach_encoder0Pos>encoder0Pos){
-if (BUTTONS==0b00000000) buttonsFlag=1;
-if (BUTTONS==0b00000001&&buttonsFlag==1){
-  while (BUTTONS==0b00000001){
+if (acc<300&&teach_encoder0Pos-encoder0Pos>1000)acc+=5;
+else if (acc>50)acc-=5;
+if (BUTTONS==0b00111000) buttonsFlag=1;
+if (BUTTONS==0b00111001&&buttonsFlag==1){
+  while (BUTTONS==0b00111001){
     delay(10);
     sense();
     }
   return 0; 
 }
-goDown(300,10);
+goDown(acc,10);
 sense();}
   
 }
 
 void goHome(){
   while (BUTTON_STOP_STATE==1){
-  if (BUTTONS==0b00000000) buttonsFlag=1;
-  if (BUTTONS==0b00000001&&buttonsFlag==1){
+  if (acc<300&&encoder0Pos>1000)acc+=5;
+  else if (acc>50)acc-=5;
+  if (BUTTONS==0b00111000) buttonsFlag=1;
+  if (BUTTONS==0b00111001&&buttonsFlag==1){
     analogWrite25k(ENA, 0);
-    while (BUTTONS==0b00000001){
+    while (BUTTONS==0b00111001){
       delay(10);
       sense();
     }
     return 0;
   }
   sense();
-  goUp(300,10);
+  goUp(acc,10);
   //Serial.println("home");
   }
 }
-
 void teach(){ 
  delay(10);
- while (BUTTONS==0b00001000){
-  goDown(250,10);
-  sense();
-  //Serial.println(encoder0Pos);
- }  
+ while (BUTTONS==0b00110000){
+    goDown(acc,100);
+    sense();
+    if (acc<300)acc+=10;
+    }
+    goDown(0,100);
+    delay(dly);
   teach_encoder0Pos=encoder0Pos;
   EEPROM.put(0,teach_encoder0Pos);
 }
@@ -332,17 +320,14 @@ void sense(){
   delay(10);
   BUTTON_STOP_STATE=digitalRead(BUTTON_STOP);
   AMPS_STATE=analogRead(A0);
-<<<<<<< HEAD
   Serial.println(BUTTONS,BIN);Serial.print(" ");
   //Serial.println(encoder0Pos);Serial.print(" ");
   //Serial.println(teach_encoder0Pos);Serial.print(" ");
-  Serial.println(distanceSensor.measureDistanceCm());
-=======
+//  Serial.println(distanceSensor.measureDistanceCm());
+
   Serial.print(BUTTON_STOP_STATE);
   Serial.println(encoder0Pos);
   Serial.println(teach_encoder0Pos);
-  
->>>>>>> parent of f1d5cd7... added acceleration profiles
 }
 
 int light(){
@@ -380,47 +365,42 @@ void fan(){
 }
 
 void loop(){
-<<<<<<< HEAD
- //delay(dly);
- //Serial.println(distanceSensor.measureDistanceCm());
  acc=0;
- //Serial.println("x");
-=======
   Serial.println("x");
->>>>>>> parent of f1d5cd7... added acceleration profiles
+  Serial.println("x");
  analogWrite25k(ENA, 0);
  buttonsFlag=0;
  sense();
  if (BUTTON_STOP_STATE==0) encoder0Pos=20;
- if (BUTTONS==0b00000100)light();
- if (BUTTONS==0b00000010)fan();
- if (BUTTONS==0b00000001 && BUTTON_STOP_STATE==0){Serial.println("go to set position");
+ if (BUTTONS==0b00111100)light();
+ if (BUTTONS==0b00111010)fan();
+ if (BUTTONS==0b00111001 && BUTTON_STOP_STATE==0){Serial.println("go to set position");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
   goTo();
   digitalWrite(RELAY_BREAK,HIGH);
  }
- if (BUTTONS==0b00000001 && BUTTON_STOP_STATE==1){Serial.println("go home");
+ if (BUTTONS==0b00111001 && BUTTON_STOP_STATE==1){Serial.println("go home");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
   goHome();
   digitalWrite(RELAY_BREAK,HIGH);
  }
- if (BUTTONS==0b00100000 && BUTTON_STOP_STATE==1){Serial.println("go up");
+ if (BUTTONS==0b00011000 && BUTTON_STOP_STATE==1){Serial.println("go up");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
-  while (BUTTONS==0b00100000 && BUTTON_STOP_STATE==1){goUp(300,100);sense();}
+  while (BUTTONS==0b00011000 && BUTTON_STOP_STATE==1){goUp(300,100);sense();}
   digitalWrite(RELAY_BREAK,HIGH);
  }
- if (BUTTONS==0b00010000){Serial.println("go down");
+ if (BUTTONS==0b00101000){Serial.println("go down");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
-  while (BUTTONS==0b00010000){goDown(300,100);sense();}
+  while (BUTTONS==0b00101000){goDown(300,100);sense();}
   digitalWrite(RELAY_BREAK,HIGH);
  }
 
 
- if (BUTTONS==0b00001000 && BUTTON_STOP_STATE==0){Serial.println("teach");
+ if (BUTTONS==0b00110000 && BUTTON_STOP_STATE==0){Serial.println("teach");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
   encoder0Pos=0;
