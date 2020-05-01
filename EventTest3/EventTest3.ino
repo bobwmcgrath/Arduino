@@ -10,7 +10,7 @@ int buttonState = 0;         // variable for reading the pushbutton status
 
 
 void setup() {
-  //pinMode(buttonPin, INPUT_PULLUP);
+  pinMode(buttonPin, INPUT_PULLUP);
   
   // put your setup code here, to run once:
 Serial.begin(115200);
@@ -18,11 +18,13 @@ Serial.begin(115200);
 
 void loop() {
     dly=50;
-    //buttonState = digitalRead(buttonPin);
+    buttonState = digitalRead(buttonPin);
     if (buttonState==0)dly=12;
+    Serial.print("<");
     Serial.print(vel); //speed
     Serial.print(",");
-    Serial.println(pos); //position
+    Serial.print(pos); //position
+    Serial.println(">");
     delay(dly);
     if (pos==30)flag=1;
     if (flag==1) pos+=1;
