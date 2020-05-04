@@ -32,7 +32,7 @@ void loop() {
         showParsedData();
         newData = false;
     }
-    delay(100);  //This delay causes a problem
+    delay(100);  
 }
 
 //============
@@ -90,8 +90,9 @@ void showParsedData() {
       while (Serial3.available() > 0) {
     Serial3.read();
 }
-    //Serial.print("velocity ");
-    //Serial.println(vel);
-    //Serial.print("position ");
+    Serial.print("velocity ");
+    Serial.print(vel);
+    Serial.print(",");
+    Serial.print(" position ");
     Serial.println(pos);
 }
