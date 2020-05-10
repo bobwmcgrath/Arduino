@@ -192,6 +192,7 @@ String Display::toString(const DisplayKey& key, const T& value) const {
 
 template <typename T>
 void Display::write(const int& row, const int& col, const T& printable) {
+  Serial.print(row); Serial.print(", "); Serial.print(col); Serial.print(": "); Serial.println(printable);
   lcd_->setCursor(col, row);
   lcd_->print(printable);
 }
