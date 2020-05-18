@@ -21,7 +21,8 @@
 
   http://www.arduino.cc/en/Tutorial/Blink
 */
-
+int dly=500;
+int x=0;
 // the setup function runs once when you press reset or power the board
 void setup() {
   Serial.begin(115200);
@@ -31,9 +32,17 @@ void setup() {
 
 // the loop function runs over and over again forever
 void loop() {
-  Serial.println("loop");
+  if (Serial.available() > 0) {
+    // get incoming byte:
+    x = Serial.read();}
+  if (x==100)dly+=100;
+  if (x==117)dly-=100;
+  Serial.println(x);
+  x=0;
+  if (dly>2000)dly=2000;
+  if (dly<0)dly=0;
   digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-  delay(1000);                       // wait for a second
+  delay(dly);                       // wait for a second
   digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-  delay(1000);                       // wait for a second
+  delay(dly);                       // wait for a second
 }
