@@ -1,170 +1,20 @@
 /* roboshelf by Bob*/
 #include <EEPROM.h>
-#include <OneWire.h>
-//#include <HCSR04.h>
+//#include <OneWire.h>
+#include "OWB.h"
+#include "INI.h"
 
-//UltraSonicDistanceSensor distanceSensor(A4, A5);  // Initialize sensor that uses digital pins 13 and 12.
-
-//OWB stuff
-#define DS2408_ONEWIRE_PIN  (8)
-#define DS2408_FAMILY_ID    0x29
-#define DS2408_ACCESS_READ  0xF5
-#define DS2408_ACCESS_WRITE 0x5A
-#define DS2408_ACK_SUCCESS  0xAA
-#define DS2408_ACK_ERROR    0xFF
-
-
-//motor drive pins
-int ENA=9;
-int IN1=7;
-int IN2=6;
-int encoder0PinA = 2;
-int ULTRASONIC_INTERUPT = 3;
-
-volatile unsigned int encoder0Pos = 0;
-
-//buttons
-byte BUTTONS = 0b00000000;
-int BUTTON_STOP = A1;
-
-
-//STATE
-int  BUTTON_GO_STATE=1;
-int  BUTTON_goUp_STATE=1;
-int  BUTTON_goDown_STATE=1;
-int  BUTTON_TEACH_STATE=1;
-int  BUTTON_FAN_STATE=1;
-int  BUTTON_LIGHT_STATE=1;
-int  BUTTON_STOP_STATE=1;
-int  AMPS_STATE=1;
-
-
-//current sensor
-//int AMP_SENSE=A0;
-int AMPS=A0;
-
-//relays
-int RELAY_FAN_HIGH=A2;
-int RELAY_FAN_LOW=A3;
-int RELAY_LIGHT=3;
-int RELAY_BREAK=5;
-
-//variables
-int x=10;
-bool UP_FLAG;
-bool DOWN_FLAG;
-int acc=1;
-unsigned long setPoint;//DISTANCE LEARNED FROM TEACH
-int startTime=0;
-int currentTime=0;
-int RELAY_FAN_FLAG=1;
-int RELAY_LIGHT_FLAG=0;
-int GO_DOWN_FLAG=0;
-int teach_encoder0Pos=0;
-int dly=200;
-int buttonsFlag=0;
-//
-
-OneWire oneWire(DS2408_ONEWIRE_PIN);
-uint8_t address[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
-
-
-
-void printBytes(uint8_t* addr, uint8_t count, bool newline=0) 
-{
-  for (uint8_t i = 0; i < count; i++) 
-  {
-    Serial.print(addr[i]>>8, HEX);
-    Serial.print(addr[i]&0x0f, HEX);
-    Serial.print(" ");
-  }
-  if (newline)
-  {
-    Serial.println();
-  }
-}
-
-byte read(void)
-{    
-  bool ok = false;
-  uint8_t results;
-
-  oneWire.reset();
-  oneWire.select(address);
-  oneWire.write(DS2408_ACCESS_READ);
-
-  results = oneWire.read();                 /* Get the register results   */
-  ok = (!results & 0x0F) == (results >> 4); /* Compare nibbles            */
-  //results &= 0x0F;                          /* Clear inverted values      */
-
-  oneWire.reset();
-  
-  // return ok ? results : -1;
-  return results;
-}
-
-bool write(uint8_t state)
-{
-  uint8_t ack = 0;
-  
-  /* Top six bits must '1' */
-  state |= 0xFC;
-  
-  oneWire.reset();
-  oneWire.select(address);
-  oneWire.write(DS2408_ACCESS_WRITE);
-  oneWire.write(state);
-  oneWire.write(~state);                    /* Invert data and resend     */    
-  ack = oneWire.read();                     /* 0xAA=success, 0xFF=failure */  
-  if (ack == DS2408_ACK_SUCCESS)
-  {
-    oneWire.read();                          /* Read the status byte      */
-  }
-  oneWire.reset();
-    
-  return (ack == DS2408_ACK_SUCCESS ? true : false);
-}
+using namespace owb;
 
 void setup()
 {
+  Serial.begin(115200);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB port only
+} 
 
- //OWB stuff
-  Serial.begin(115200);  
-  
-  Serial.println(F("Looking for a DS2408 on the bus"));
-  
-  /* Try to find a device on the bus */
-  oneWire.reset_search();
-  delay(250);
-  if (!oneWire.search(address)) 
-  {
-    printBytes(address, 8);
-    Serial.println(F("No device found on the bus!"));
-    oneWire.reset_search();
-    while(1);
-  }
-  
-  /* Check the CRC in the device address */
-  if (OneWire::crc8(address, 7) != address[7]) 
-  {
-    Serial.println(F("Invalid CRC!"));
-    while(1);
-  }
-  
-  /* Make sure we have a DS2408 */
-  if (address[0] != DS2408_FAMILY_ID) 
-  {
-    printBytes(address, 8);
-    Serial.println(F(" is not a DS2413!"));
-    while(1);
-  }
-  
-  Serial.print(F("Found a DS2408: "));
-  printBytes(address, 8);
-  Serial.println(F(""));
-//end of OWB stuff
-
-
+ void OWB_setup();
+ 
 //read eeprom for set distance
  EEPROM.get(0,teach_encoder0Pos);
   
@@ -197,13 +47,6 @@ void setup()
  pinMode (RELAY_BREAK,OUTPUT);
  digitalWrite (RELAY_BREAK,HIGH);
 
- 
-
- // Open serial communications and wait for port to open:
-  Serial.begin(115200);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-}
  sense();
 
 Serial.println("setup");
@@ -266,9 +109,9 @@ void goTo(){
 while (teach_encoder0Pos>encoder0Pos){
 if (acc<300&&teach_encoder0Pos-encoder0Pos>1000)acc+=5;
 else if (acc>50)acc-=5;
-if (BUTTONS==0b00111000) buttonsFlag=1;
-if (BUTTONS==0b00111001&&buttonsFlag==1){
-  while (BUTTONS==0b00111001){
+if (BUTTONS==BUTTONS_INI) buttonsFlag=1;
+if (BUTTONS==GO_B&&buttonsFlag==1){
+  while (BUTTONS==GO_B){
     delay(10);
     sense();
     }
@@ -283,10 +126,10 @@ void goHome(){
   while (BUTTON_STOP_STATE==1){
   if (acc<300&&encoder0Pos>1000)acc+=5;
   else if (acc>50)acc-=5;
-  if (BUTTONS==0b00111000) buttonsFlag=1;
-  if (BUTTONS==0b00111001&&buttonsFlag==1){
+  if (BUTTONS==goHome_B) buttonsFlag=1;
+  if (BUTTONS==goHome_B&&buttonsFlag==1){
     analogWrite25k(ENA, 0);
-    while (BUTTONS==0b00111001){
+    while (BUTTONS==goHome_B){
       delay(10);
       sense();
     }
@@ -299,7 +142,7 @@ void goHome(){
 }
 void teach(){ 
  delay(10);
- while (BUTTONS==0b00110000){
+ while (BUTTONS==TEACH_B){
     goDown(acc,100);
     sense();
     if (acc<300)acc+=10;
@@ -312,7 +155,7 @@ void teach(){
 
 void sense(){
   delay(10);
-    BUTTONS = read();
+    BUTTONS = owb::read();
   if (BUTTONS == -1)
     Serial.println(F("Failed reading the DS2408"));
   else
@@ -341,7 +184,7 @@ int light(){
   else if (RELAY_LIGHT_FLAG==0)
     {digitalWrite(RELAY_LIGHT,HIGH);
     RELAY_LIGHT_FLAG=1;}
-  while (BUTTONS==0b00000100){
+  while (BUTTONS==LIGHT_B){
     delay(10);
     sense();
   }
@@ -372,35 +215,35 @@ void loop(){
  buttonsFlag=0;
  sense();
  if (BUTTON_STOP_STATE==0) encoder0Pos=20;
- if (BUTTONS==0b00111100)light();
- if (BUTTONS==0b00111010)fan();
- if (BUTTONS==0b00111001 && BUTTON_STOP_STATE==0){Serial.println("go to set position");
+ if (BUTTONS==LIGHT_B)light();
+ if (BUTTONS==FAN_B)fan();
+ if (BUTTONS==GO_B && BUTTON_STOP_STATE==0){Serial.println("go to set position");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
   goTo();
   digitalWrite(RELAY_BREAK,HIGH);
  }
- if (BUTTONS==0b00111001 && BUTTON_STOP_STATE==1){Serial.println("go home");
+ if (BUTTONS==goHome_B && BUTTON_STOP_STATE==1){Serial.println("go home");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
   goHome();
   digitalWrite(RELAY_BREAK,HIGH);
  }
- if (BUTTONS==0b00011000 && BUTTON_STOP_STATE==1){Serial.println("go up");
+ if (BUTTONS==goUp_B && BUTTON_STOP_STATE==1){Serial.println("go up");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
-  while (BUTTONS==0b00011000 && BUTTON_STOP_STATE==1){goUp(300,100);sense();}
+  while (BUTTONS==goUp_B && BUTTON_STOP_STATE==1){goUp(300,100);sense();}
   digitalWrite(RELAY_BREAK,HIGH);
  }
- if (BUTTONS==0b00101000){Serial.println("go down");
+ if (BUTTONS==goDown_B){Serial.println("go down");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
-  while (BUTTONS==0b00101000){goDown(300,100);sense();}
+  while (BUTTONS==TEACH_B){goDown(300,100);sense();}
   digitalWrite(RELAY_BREAK,HIGH);
  }
 
 
- if (BUTTONS==0b00110000 && BUTTON_STOP_STATE==0){Serial.println("teach");
+ if (BUTTONS==TEACH_B && BUTTON_STOP_STATE==0){Serial.println("teach");
   digitalWrite(RELAY_BREAK,LOW);
   delay(dly);
   encoder0Pos=0;
