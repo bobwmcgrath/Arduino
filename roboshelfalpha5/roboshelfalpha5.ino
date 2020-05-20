@@ -1,22 +1,23 @@
-/* roboshelf by Bob*/
+ /* roboshelf by Bob*/
 #include <EEPROM.h>
 //#include <OneWire.h>
+#include "CONST.h"
 #include "OWB.h"
+#include "PINS.h"
 #include "INI.h"
 
 using namespace owb;
+using namespace pins;
 
 void setup()
 {
   Serial.begin(115200);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-} 
+//  while (!Serial) {
+//    ; // wait for serial port to connect. Needed for native USB port only
+//} 
 
- void OWB_setup();
- 
-//read eeprom for set distance
- EEPROM.get(0,teach_encoder0Pos);
+ owb::OWB_setup();
+
   
 // Configure Timer 1 for PWM @ 25 kHz.
     TCCR1A = 0;           // undo the configuration done by...
@@ -29,24 +30,9 @@ void setup()
            | _BV(CS10);   // prescaler = 1
     ICR1   = 320;         // TOP = 320
 
-//PIN INITILIZATION
- pinMode(ENA,OUTPUT);
- pinMode(IN1,OUTPUT);
- pinMode(IN2,OUTPUT); 
- pinMode(encoder0PinA, INPUT_PULLUP);       // turn on pull-up resistor
- //pinMode(US_INTERUPT, INPUT_PULLUP);       // turn on pull-up resistor
+ pins::pinINI();
  attachInterrupt(0, doEncoder, CHANGE);  // encoder pin on interrupt 0 - pin 2
- //attachInterrupt(1, USlisten, CHANGE);  // encoder pin on interrupt 1 - pin 3
- pinMode(BUTTON_STOP,INPUT_PULLUP);
- pinMode(AMPS,INPUT);
- pinMode(A5,OUTPUT);
- pinMode (RELAY_FAN_LOW,OUTPUT);
- pinMode (RELAY_FAN_HIGH,OUTPUT);
- pinMode (RELAY_LIGHT,OUTPUT);
- digitalWrite (RELAY_LIGHT,LOW);
- pinMode (RELAY_BREAK,OUTPUT);
- digitalWrite (RELAY_BREAK,HIGH);
-
+ EEPROM.get(0,teach_encoder0Pos);
  sense();
 
 Serial.println("setup");
@@ -155,25 +141,20 @@ void teach(){
 
 void sense(){
   delay(10);
-    BUTTONS = owb::read();
-  if (BUTTONS == -1)
-    Serial.println(F("Failed reading the DS2408"));
-  else
-    //Serial.println(BUTTONS, BIN);
+  BUTTONS = owb::read();
   delay(10);
   BUTTON_STOP_STATE=digitalRead(BUTTON_STOP);
   AMPS_STATE=analogRead(A0);
   Serial.println(BUTTONS,BIN);Serial.print(" ");
   //Serial.println(encoder0Pos);Serial.print(" ");
   //Serial.println(teach_encoder0Pos);Serial.print(" ");
-//  Serial.println(distanceSensor.measureDistanceCm());
-
+  //Serial.println(distanceSensor.measureDistanceCm());
   Serial.print(BUTTON_STOP_STATE);
   Serial.println(encoder0Pos);
   Serial.println(teach_encoder0Pos);
 }
 
-int light(){
+void light(){
   delay(100);
   if (RELAY_LIGHT_FLAG==1){
     analogWrite(RELAY_LIGHT,100);

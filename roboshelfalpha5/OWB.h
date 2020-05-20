@@ -2,6 +2,7 @@
 #define OWB_h
 
 #include <OneWire.h>
+#include "CONST.h"
 
 //OWB stuff
 #define DS2408_ONEWIRE_PIN  (8)
