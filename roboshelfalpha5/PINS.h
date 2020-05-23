@@ -5,9 +5,9 @@
 #include "CONST.h"
 
 namespace pins{
-  
-void pinINI();
-
+ void PWMconfig();
+ void pinINI();
+ void analogWrite25k(int pin, int value);
 }
 
 #endif

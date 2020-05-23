@@ -1,7 +1,7 @@
 #include "OWB.h"
 
 namespace owb{
-  
+
 OneWire oneWire(DS2408_ONEWIRE_PIN);
 uint8_t address[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
   
@@ -97,5 +97,13 @@ void OWB_setup()
   Serial.print(F("Found a DS2408: "));
   printBytes(address, 8);
   Serial.println(F(""));
-}
+ }
+
+  byte buttons(){
+    byte BUTTONS;
+    BUTTONS = read();
+    Serial.println(BUTTONS,BIN);
+    return BUTTONS;
+  }
+
 }

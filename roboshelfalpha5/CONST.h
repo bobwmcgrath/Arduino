@@ -4,6 +4,18 @@
 //#include "Arduino.h"
 //#include "PINS.h"
 
+enum States {
+  STARTUP,   // 0
+  WAIT,      // 1
+  GO_PRESET, // 2
+  GO_USER,   // 3
+  GO_HOME,   // 4
+  GO_UP,     // 5
+  GO_DOWN,   // 6
+  TEACH,     // 7
+  SAFETY     // 8
+};
+
 //motor drive pins
 const int ENA=9;
 const int IN1=7;
