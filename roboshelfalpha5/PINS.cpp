@@ -35,6 +35,7 @@ void pinINI()
  }
 
 //AN ANALOG WRITE THAT PWMS AT FASTER THAN THE NORMAL 490HZ
+// Output value should be between 0 and 320, inclusive.
 void analogWrite25k(int pin, int value)
 {
     switch (pin) {

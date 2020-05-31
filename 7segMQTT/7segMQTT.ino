@@ -1,16 +1,15 @@
 /*
  Based on "Basic MQTT example" 
 */
-
-
+//#include <avr/wdt.h> //watch do timer
 #include <SPI.h>
 #include <Ethernet.h>
-#include <PubSubClient.h>
+#include <PubSubClient.h> //MQTT
 
 
-const bool countdown=0;
+const bool countdown=1;
 const bool score=0;
-const bool high_score=1;
+const bool high_score=0;
 int top_score=0;
 
 //GPIO declarations
@@ -23,11 +22,11 @@ int number = 0;
 
 // Update these with values suitable for your network.
 //if (countdown==1) 
-//byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x01 };
+byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x01 };
 //if (score==1) 
 //byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x02 };
 //if (high_score==1) 
-byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x03 };
+//byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x03 };
 
 //if (countdown==1) 
 IPAddress ip(192, 168, 1, 80);
@@ -88,6 +87,7 @@ void reconnect() {
 
 void setup()
 {
+  //wdt_enable(WDTO_8S);
   Serial.begin(115200);
 
   client.setServer(server, 1883);
@@ -106,6 +106,17 @@ void setup()
   digitalWrite(segmentLatch, LOW);
 
   showNumber(number);
+
+
+}
+
+int swap(int digit)
+{
+  
+  int first_digit = floor(digit);
+  int second_digit = digit%10;
+  int swapped_number = (second_digit*10)+first_digit;
+  return swapped_number;
 
 }
 
@@ -128,7 +139,7 @@ void count_down()
 void score_point()
 {
   number++;
-  showNumber(number);
+  showNumber(swap(number));
   delay(150);
 }
 
@@ -138,8 +149,7 @@ void loop()
     reconnect();
   }
   client.loop();
-
-
+  //wdt_reset();
 
 }
 

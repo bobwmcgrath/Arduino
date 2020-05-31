@@ -1,7 +1,7 @@
 #ifndef INI_h
 #define INI_h
-volatile int encoder0Pos = 0;
-volatile int lastencoder0Pos = 0;
+volatile int ticks = 0;
+volatile int last_Pos = 0;
 float cur_vel = 0;
 
 byte BUTTONS = BUTTONS_INI;
@@ -25,13 +25,14 @@ bool RELAY_FAN_FLAG=1;
 bool RELAY_LIGHT_FLAG=0;
 bool UP_FLAG;
 bool DOWN_FLAG;
+bool NEAR_FLAG=0;
 
 //variables
 int x=10;
 int acc=1;
 unsigned long setPoint;//DISTANCE LEARNED FROM TEACH
 int startTime=0;
-int lastTime=0;
+int last_time=0;
 int currentTime=0;
 int GO_DOWN_FLAG=0;
 int teach_encoder0Pos=0;

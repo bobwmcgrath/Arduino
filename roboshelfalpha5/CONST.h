@@ -5,15 +5,16 @@
 //#include "PINS.h"
 
 enum States {
-  STARTUP,   // 0
-  WAIT,      // 1
-  GO_PRESET, // 2
-  GO_USER,   // 3
-  GO_HOME,   // 4
-  GO_UP,     // 5
-  GO_DOWN,   // 6
-  TEACH,     // 7
-  SAFETY     // 8
+  //STARTUP,       // 0
+  WAIT,            // 1
+  GO_PRESET,       // 2
+  GO_USER,         // 3
+  GO_HOME,         // 4
+  GO_UP,           // 5
+  GO_DOWN,         // 6
+  TEACH,           // 7
+  SPAGHETTI_SAFETY // 8
+  FINGER_SAFETY    // 9
 };
 
 //motor drive pins
@@ -44,5 +45,8 @@ const int RELAY_BREAK=5;
 //current sensor
 //int AMP_SENSE=A0;
 const int AMPS=A0;
+
+//ticks2in
+const long ticks_per_inch=1000;
 
 #endif

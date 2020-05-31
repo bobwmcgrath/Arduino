@@ -21,7 +21,7 @@ void printBytes(uint8_t* addr, uint8_t count, bool newline=0);
 byte read(void);
 bool write(uint8_t state);
 void OWB_setup();
-byte buttons();
+byte buttons(byte& BUTTONS);
 
 
 }

@@ -3,10 +3,10 @@
 
 #include "Arduino.h"
 #include "CONST.h"
-#include "OWB.h"
 
 namespace sense{
 
+float ticks2in(ticks);
 
 }
 
