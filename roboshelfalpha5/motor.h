@@ -3,10 +3,11 @@
 
 #include "Arduino.h"
 #include "CONST.h"
+#include "sense.h"
 
 namespace motor{
 
-int goToPosition(const long& goal_pos, const long& goal_vel, const long& acc, const long& cur_pos, const long& cur_vel, int& NEAR_FLAG);
+int goToPosition(const int& goal_pos, const int& goal_vel, const int& acc, const int& cur_pos, const int& cur_vel, int PWM);
 
 }
 

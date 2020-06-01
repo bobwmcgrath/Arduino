@@ -10,6 +10,7 @@
 
 
 
+
 void setState(States newState) {
   enteringState = true;
   state = newState;
@@ -29,12 +30,12 @@ void setup()
  attachInterrupt(0, doEncoder, CHANGE);  // encoder pin on interrupt 0 - pin 2
  EEPROM.get(0,teach_encoder0Pos);
  Serial.println("SETUP");
- void setState(WAIT);
+ setState(WAIT);
 }
 
 void doEncoder() //interupt based encoder ticks
 {
-  if (GO_DOWN_FLAG==1) {
+  if (GO_DOWN_FLAG==0) {
     ticks++;
   } else {
     ticks--;
@@ -42,16 +43,19 @@ void doEncoder() //interupt based encoder ticks
 }
 
 void loop(){
+ if (PWM>max_PWM)PWM=max_PWM;
+ delay(50);
  owb::buttons(BUTTONS);
  last_time=cur_time;
  cur_time=millis();
  last_pos=cur_pos;
- cur_pos=sense::ticks2in(ticks);
- cur_vel=sense::velocitize(last_time, cur_time, last_pos, cur_pos);
+ cur_pos=ticks;
+ last_vel=cur_vel;
+ cur_vel=sense::velocitize(cur_pos, last_pos, cur_time, last_time);
  pins::analogWrite25k(ENA,PWM);
-
- if (BUTTONS==LIGHT_B)light_fan::light(RELAY_LIGHT_FLAG);
- if (BUTTONS==FAN_B)light_fan::fan(RELAY_FAN_FLAG);
+ //Serial.println(vel);
+ if (BUTTONS==LIGHT_B)light_fan::light(RELAY_LIGHT_FLAG, BUTTONS);
+ if (BUTTONS==FAN_B)light_fan::fan(RELAY_FAN_FLAG, BUTTONS);
 
 
  switch (state) {
@@ -61,12 +65,12 @@ void loop(){
     {
       Serial.println("WAIT");
       enteringState = false;
+      PWM=0;
       digitalWrite(RELAY_BREAK,HIGH);
     }
-        PWM=0
         if (BUTTONS==GO_PRESET_B && digitalRead(BUTTON_STOP)==0)setState(GO_PRESET);
         if (BUTTONS==GO_USER_B && digitalRead(BUTTON_STOP)==0)setState(GO_USER);
-        if (BUTTONS==goHome_B && digitalRead(BUTTON_STOP)==1)setState(GO_HOME);
+        if ((BUTTONS==GO_USER_B || BUTTONS==GO_PRESET_B)&& digitalRead(BUTTON_STOP)==1)setState(GO_HOME);
         if (BUTTONS==goUp_B && digitalRead(BUTTON_STOP)==1)setState(GO_UP);
         if (BUTTONS==goDown_B)setState(GO_DOWN);
         if (BUTTONS==TEACH_B && digitalRead(BUTTON_STOP)==0)setState(TEACH);
@@ -82,11 +86,15 @@ void loop(){
             
     }
     
-      PWM = goToPosition(preset_pos, vel, acc, cur_pos, cur_vel, NEAR_FLAG, PWM);
+      PWM = motor::goToPosition(preset_pos, vel, acc, cur_pos, cur_vel, PWM);
       
-      if (digitalRead(BUTTON_SPAGHETTI)==1 && NEAR_FLAG==0)
+      if (digitalRead(BUTTON_SPAGHETTI)==0 && NEAR_FLAG==0)
       {
       setState(SPAGHETTI_SAFETY);
+      }      
+      if (cur_pos>preset_pos)
+      {
+      setState(WAIT);
       }
     break;
 
@@ -95,9 +103,10 @@ void loop(){
     {
       Serial.println("SPAGHETTI_SAFETY");
       enteringState = false;
-      retract = cur_pos - 2.0       
+      retract_pos = cur_pos - retract;//sense::in2ticks(2.0);      
     }
-    PWM = goToPosition(preset_encoder0Pos, max_vel, max_acc, cur_pos, cur_vel);
+    PWM = motor::goToPosition(retract_pos, vel, acc, cur_pos, cur_vel, PWM);
     break;
     
+  }
 }

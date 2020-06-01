@@ -7,8 +7,8 @@
 #include <PubSubClient.h> //MQTT
 
 
-const bool countdown=1;
-const bool score=0;
+const bool countdown=0;
+const bool score=1;
 const bool high_score=0;
 int top_score=0;
 
@@ -22,14 +22,14 @@ int number = 0;
 
 // Update these with values suitable for your network.
 //if (countdown==1) 
-byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x01 };
+//byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x01 };
 //if (score==1) 
-//byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x02 };
+byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x02 };
 //if (high_score==1) 
 //byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x03 };
 
 //if (countdown==1) 
-IPAddress ip(192, 168, 1, 80);
+IPAddress ip(192, 168, 1, 82);
 //if (score==1) IPAddress ip(192, 168, 1, 80);
 //if (high_score==1) IPAddress ip(192, 168, 1, 80);
 
@@ -88,7 +88,7 @@ void reconnect() {
 void setup()
 {
   //wdt_enable(WDTO_8S);
-  Serial.begin(115200);
+  Serial.begin(9600);
 
   client.setServer(server, 1883);
   client.setCallback(callback);

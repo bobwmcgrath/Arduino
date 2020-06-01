@@ -100,9 +100,8 @@ void OWB_setup()
  }
 
   byte buttons(byte& BUTTONS){
-    byte BUTTONS;
     BUTTONS = read();
-    Serial.println(BUTTONS,BIN);
+    //Serial.println(BUTTONS,BIN);
     return BUTTONS;
   }
 

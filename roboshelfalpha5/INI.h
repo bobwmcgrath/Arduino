@@ -1,8 +1,10 @@
 #ifndef INI_h
 #define INI_h
+#include "sense.h"
 volatile int ticks = 0;
 volatile int last_Pos = 0;
-float cur_vel = 0;
+int last_vel = 0;
+int cur_vel = 0;
 
 byte BUTTONS = BUTTONS_INI;
 
@@ -29,15 +31,18 @@ bool NEAR_FLAG=0;
 
 //variables
 int x=10;
-int acc=1;
+int acc=10;
 unsigned long setPoint;//DISTANCE LEARNED FROM TEACH
-int startTime=0;
-int last_time=0;
-int currentTime=0;
 int GO_DOWN_FLAG=0;
 int teach_encoder0Pos=0;
 int dly=200;
 int buttonsFlag=0;
+long last_time=0;
+long cur_time=0;
+long last_pos=0;
+long cur_pos=0;
+int PWM=0;
+int retract_pos=0;
 //
 
 #endif

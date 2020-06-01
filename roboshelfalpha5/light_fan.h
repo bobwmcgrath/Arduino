@@ -8,8 +8,8 @@
 
 namespace light_fan{
   
-bool light(bool& RELAY_LIGHT_FLAG);
-bool fan(bool& RELAY_FAN_FLAG);
+bool light(bool& RELAY_LIGHT_FLAG, byte& BUTTONS);
+bool fan(bool& RELAY_FAN_FLAG, byte& BUTTONS);
 
 }
 

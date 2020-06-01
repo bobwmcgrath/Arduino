@@ -6,7 +6,8 @@
 
 namespace sense{
 
-float ticks2in(ticks);
+long velocitize(const long& cur_pos, const long& last_pos, const long& cur_time, const long& last_time);
+//constexpr int in2ticks(const float in);
 
 }
 

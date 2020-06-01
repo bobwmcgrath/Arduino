@@ -24,6 +24,8 @@ void pinINI()
  pinMode(IN2,OUTPUT); 
  pinMode(encoder0PinA, INPUT_PULLUP);       // turn on pull-up resistor
  pinMode(BUTTON_STOP,INPUT_PULLUP);
+ pinMode(BUTTON_SPAGHETTI,INPUT_PULLUP);
+ pinMode(BUTTON_FINGER,INPUT_PULLUP);
  pinMode(AMPS,INPUT);
  pinMode(A5,OUTPUT);
  pinMode (RELAY_FAN_LOW,OUTPUT);
@@ -37,10 +39,21 @@ void pinINI()
 //AN ANALOG WRITE THAT PWMS AT FASTER THAN THE NORMAL 490HZ
 // Output value should be between 0 and 320, inclusive.
 void analogWrite25k(int pin, int value)
-{
+{   if (value < 0)
+    {
+      digitalWrite(IN1,LOW);// rotate forward
+      digitalWrite(IN2,HIGH);
+    }
+
+    else if (value > 0)
+    {
+      digitalWrite(IN1,HIGH);// rotate reverse
+      digitalWrite(IN2,LOW);
+    }
+    
     switch (pin) {
         case 9:
-            OCR1A = value;
+            OCR1A = abs(value);
             break;
         default:
             // no other pin will work

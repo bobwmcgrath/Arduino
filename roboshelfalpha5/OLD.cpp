@@ -1,4 +1,4 @@
- 
+ /*
  void goUp(int spd, int x)
 {
  GO_DOWN_FLAG=0;
@@ -136,4 +136,4 @@ void sense(){
   encoder0Pos=0;
   teach();
   digitalWrite(RELAY_BREAK,HIGH);
- }
+ }*/

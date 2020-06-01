@@ -4,7 +4,7 @@
 
 namespace light_fan{
 
-  bool light(bool& RELAY_LIGHT_FLAG){
+  bool light(bool& RELAY_LIGHT_FLAG, byte& BUTTONS){
   delay(100);
   if (RELAY_LIGHT_FLAG==1){
     analogWrite(RELAY_LIGHT,100);
@@ -15,7 +15,7 @@ namespace light_fan{
   else if (RELAY_LIGHT_FLAG==0)
     {digitalWrite(RELAY_LIGHT,HIGH);
     RELAY_LIGHT_FLAG=1;}
-  while (owb::buttons()==LIGHT_B){
+  while (owb::buttons(BUTTONS)==LIGHT_B){
     delay(10);
   }
   
@@ -24,7 +24,7 @@ namespace light_fan{
   return RELAY_LIGHT_FLAG;
 }
 
-bool fan(bool& RELAY_FAN_FLAG){
+bool fan(bool& RELAY_FAN_FLAG, byte& BUTTONS){
   delay(100);
   
   if (RELAY_FAN_FLAG==1){
@@ -36,7 +36,7 @@ bool fan(bool& RELAY_FAN_FLAG){
     RELAY_FAN_FLAG=1;
     }
     
-  while (owb::buttons()==FAN_B){
+  while (owb::buttons(BUTTONS)==FAN_B){
     delay(10);
     //sense();
   }
