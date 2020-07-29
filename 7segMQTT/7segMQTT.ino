@@ -6,10 +6,9 @@
 #include <Ethernet.h>
 #include <PubSubClient.h> //MQTT
 
-
-const bool countdown=0;
-const bool score=1;
-const bool high_score=0;
+#define countdown 0
+#define score 0
+#define high_score 1
 int top_score=0;
 
 //GPIO declarations
@@ -21,18 +20,24 @@ int number = 0;
 //-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 // Update these with values suitable for your network.
-//if (countdown==1) 
-//byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x01 };
-//if (score==1) 
-byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x02 };
-//if (high_score==1) 
-//byte mac[]   = {  0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x03 };
-
-//if (countdown==1) 
-IPAddress ip(192, 168, 1, 82);
-//if (score==1) IPAddress ip(192, 168, 1, 80);
-//if (high_score==1) IPAddress ip(192, 168, 1, 80);
-
+#if (countdown==1)
+  #define MAC_ADDRESS 0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x01
+  #define IPADDRESS 192, 168, 1, 80
+  #define CLIENT "countdown"
+  #endif
+#if (score==1)
+  #define MAC_ADDRESS 0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x02
+  #define IPADDRESS 192, 168, 1, 81
+  #define CLIENT "score"
+  #endif
+#if (high_score==1)
+  #define MAC_ADDRESS 0xDE, 0xED, 0xBA, 0xFE, 0xFE, 0x03
+  #define IPADDRESS 192, 168, 1, 82
+  #define CLIENT "high_score"
+  #endif
+  
+byte mac[]   = {MAC_ADDRESS};
+IPAddress ip(IPADDRESS);
 IPAddress server(192, 168, 1, 239);
 
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -66,7 +71,7 @@ void reconnect() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect("arduinoClient")) {
+    if (client.connect(CLIENT)) {
       Serial.println("connected");
       // Once connected, publish an announcement...
       client.publish("outTopic","hello world");
@@ -113,9 +118,11 @@ void setup()
 int swap(int digit)
 {
   
-  int first_digit = floor(digit);
+  int first_digit = digit/10;
+  first_digit = floor(first_digit);
   int second_digit = digit%10;
   int swapped_number = (second_digit*10)+first_digit;
+
   return swapped_number;
 
 }
@@ -127,8 +134,9 @@ void count_down()
 
   while (number!=0)
   {
-    delay(1000);
+    delay(980);//1 second - processing
     showNumber(number-1);
+    if (number==18)showNumber(number-1);//to fix bizzar glich in displaying the number 17 as 87
     number--;
     
   Serial.println(number); //For debugging
@@ -139,7 +147,7 @@ void count_down()
 void score_point()
 {
   number++;
-  showNumber(swap(number));
+  showNumber(number);
   delay(150);
 }
 
@@ -158,7 +166,7 @@ void loop()
 void showNumber(float value)
 {
   int number = abs(value); //Remove negative signs and any decimals
-
+  number = swap(number);
   //Serial.print("number: ");
   //Serial.println(number);
 

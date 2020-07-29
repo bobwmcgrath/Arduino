@@ -44,6 +44,8 @@ void doEncoder() //interupt based encoder ticks
 
 void loop(){
  if (PWM>max_PWM)PWM=max_PWM;
+ if (PWM<min_PWM)PWM=min_PWM;
+ if (digitalRead(BUTTON_STOP)==0)ticks=0;
  delay(50);
  owb::buttons(BUTTONS);
  last_time=cur_time;
@@ -66,6 +68,7 @@ void loop(){
       Serial.println("WAIT");
       enteringState = false;
       PWM=0;
+      delay(dly);
       digitalWrite(RELAY_BREAK,HIGH);
     }
         if (BUTTONS==GO_PRESET_B && digitalRead(BUTTON_STOP)==0)setState(GO_PRESET);
@@ -88,14 +91,28 @@ void loop(){
     
       PWM = motor::goToPosition(preset_pos, vel, acc, cur_pos, cur_vel, PWM);
       
+      if (digitalRead(BUTTON_SPAGHETTI)==0 && NEAR_FLAG==0){setState(SPAGHETTI_SAFETY);}
+      if ((BUTTONS==GO_USER_B || BUTTONS==GO_PRESET_B)&& digitalRead(BUTTON_STOP)==1){
+      while (owb::buttons(BUTTONS)==GO_USER_B || owb::buttons(BUTTONS)==GO_PRESET_B) delay(10);
+      setState(WAIT);}      
+      if (cur_pos>preset_pos){setState(WAIT);}
+    break;
+
+    case GO_HOME: 
+    if (enteringState)
+    {
+      Serial.println("GO_HOME");
+      enteringState = false;
+      digitalWrite(RELAY_BREAK,LOW);
+      delay(dly);
+            
+    }
+    
+      PWM = motor::goToPosition(0, vel, acc, cur_pos, cur_vel, PWM);
+      
       if (digitalRead(BUTTON_SPAGHETTI)==0 && NEAR_FLAG==0)
-      {
-      setState(SPAGHETTI_SAFETY);
-      }      
-      if (cur_pos>preset_pos)
-      {
-      setState(WAIT);
-      }
+      {setState(SPAGHETTI_SAFETY);}      
+      if (digitalRead(BUTTON_STOP)==0){setState(WAIT);}
     break;
 
     case SPAGHETTI_SAFETY: 

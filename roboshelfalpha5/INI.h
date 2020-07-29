@@ -31,7 +31,7 @@ bool NEAR_FLAG=0;
 
 //variables
 int x=10;
-int acc=10;
+int acc=3;
 unsigned long setPoint;//DISTANCE LEARNED FROM TEACH
 int GO_DOWN_FLAG=0;
 int teach_encoder0Pos=0;

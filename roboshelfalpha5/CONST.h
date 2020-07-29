@@ -18,12 +18,13 @@ enum States {
   FINGER_SAFETY,      // 9
 };
 
-//motor drive pins
+//motor stuff
 const int ENA=9;
 const int IN1=7;
 const int IN2=6;
 const int encoder0PinA = 2;
 const int max_PWM=300;
+const int min_PWM=-300;
 
 //buttons
 const byte BUTTONS_INI=0b11110000;
