@@ -68,5 +68,17 @@ bool DebouncedButton::isPressed() {
   return pressed_value;
 }
 
+/*bool DebouncedButton::isReleased() {
+  bool released_value = false;
+  const unsigned long time_now = millis();
+  if (pin_ == false) {
+    if ((time_now - last_pressed_time_) > kDebounceDelay) {
+      released_value = true;
+    }
+    last_released_time_ = time_now;
+  }
+  return released_value;
+}
+
 
 }  // namespace buttons
